@@ -12,7 +12,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Items/Item.h"
-#include "Items/Weapons/Sword.h"
+#include "Items/Weapons/OneHanded.h"
+#include "Items/Weapons/TwoHanded.h"
 #include "Items/Weapons/Weapon.h"
 
 #include "EnhancedInputSubsystems.h"
@@ -266,30 +267,26 @@ void ASlashCharacter::Interact(const FInputActionValue& Value)
 		{
 			return;
 		}
+
 		for (AItem* ThisItem : OverlappedItems)
 		{
-			ASword* OverlappingWeapon = Cast<ASword>(ThisItem);
+			TObjectPtr<AOneHanded> OverlappingOneHanded = Cast<AOneHanded>(ThisItem);
+			TObjectPtr<ATwoHanded> OverlappingTwoHanded = Cast<ATwoHanded>(ThisItem);
 
-			if (!OverlappingWeapon)
+			if (!OverlappingOneHanded && !OverlappingTwoHanded)
 			{
 				continue;
 			}
-
 			switch (CharacterEquippedState)
 			{
 				case ECharacterEquippedState::CES_UnEquipped:
 				{
 					if (!GetCharacterEquippedWeapon()) // Snap the weapon if I have no weapon
 					{
-						OverlappingWeapon->EquipWeapon(GetMesh(), FName("RightHandWeaponSwordSocket"));
+						OverlappingOneHanded->EquipWeapon(GetMesh(), FName("RightHandOneHandedWeaponSocket"));
 						CharacterEquippedState = ECharacterEquippedState::CES_Equipped_OneHanded;
-
-						ASword* OverlappingSword = Cast<ASword>(OverlappingWeapon);
-						if (OverlappingSword)
-						{
-							AttackAnimMontage = OverlappingSword->GetAnimMontage();
-						}
-						SetCharacterEquippedWeapon(OverlappingWeapon);
+						AttackAnimMontage = OverlappingOneHanded->GetAnimMontage();
+						SetCharacterEquippedWeapon(OverlappingOneHanded);
 					}
 					else // If I am holding a weapon add to inventory
 					{
