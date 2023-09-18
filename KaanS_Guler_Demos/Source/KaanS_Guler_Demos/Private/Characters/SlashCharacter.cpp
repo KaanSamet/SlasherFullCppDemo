@@ -277,8 +277,11 @@ void ASlashCharacter::Interact(const FInputActionValue& Value)
 			{
 				continue;
 			}
-			switch (CharacterEquippedState)
+
+			if (OverlappingOneHanded)
 			{
+				switch (CharacterEquippedState)
+				{
 				case ECharacterEquippedState::CES_UnEquipped:
 				{
 					if (!GetCharacterEquippedWeapon()) // Snap the weapon if I have no weapon
@@ -298,7 +301,34 @@ void ASlashCharacter::Interact(const FInputActionValue& Value)
 				{
 					break; //Add the weapon to inventory
 				}
+				}
 			}
+			else if (OverlappingTwoHanded)
+			{
+				switch (CharacterEquippedState)
+				{
+				case ECharacterEquippedState::CES_UnEquipped:
+				{
+					if (!GetCharacterEquippedWeapon()) // Snap the weapon if I have no weapon
+					{
+						OverlappingTwoHanded->EquipWeapon(GetMesh(), FName("RightHandOneHandedWeaponSocket"));
+						CharacterEquippedState = ECharacterEquippedState::CES_Equipped_OneHanded;
+						AttackAnimMontage = OverlappingTwoHanded->GetAnimMontage();
+						SetCharacterEquippedWeapon(OverlappingTwoHanded);
+					}
+					else // If I am holding a weapon add to inventory
+					{
+						break;
+					}
+				}
+				case ECharacterEquippedState::CES_Equipped_OneHanded:
+				case ECharacterEquippedState::CES_Equipped_TwoHanded:
+				{
+					break; //Add the weapon to inventory
+				}
+				}
+			}
+			
 			break;
 		}
 	}
