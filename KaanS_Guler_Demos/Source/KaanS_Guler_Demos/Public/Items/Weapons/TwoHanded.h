@@ -22,6 +22,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
 	UAnimMontage* TwoHandedAttackAnimMontage;
 
+	virtual void Item_Interact_Implementation() override;
+	virtual void Item_Equip_Implementation(USceneComponent* ParentSceneComponent, FName SocketName) override;
+	virtual void Item_AddToInventory_Implementation() override;
+
+	void TwoHanded_Equip(USceneComponent* ParentSceneComponent);
+
 public:
 	FORCEINLINE UAnimMontage* GetAnimMontage() { return TwoHandedAttackAnimMontage; }
 

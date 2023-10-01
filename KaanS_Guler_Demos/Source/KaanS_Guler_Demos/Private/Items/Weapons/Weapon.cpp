@@ -19,7 +19,19 @@ void AWeapon::ItemEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 	Super::ItemEndOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 }
 
-void AWeapon::EquipWeapon(USceneComponent* ParentSceneComponent, FName SocketName)
+
+// Interface Functions
+void AWeapon::Item_Interact_Implementation()
 {
-	AttachToComponent(ParentSceneComponent, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+	Super::Item_Interact_Implementation();
+}
+
+void AWeapon::Item_Equip_Implementation(USceneComponent* ParentSceneComponent, FName SocketName)
+{
+	Super::Item_Equip_Implementation(ParentSceneComponent, SocketName);
+}
+
+void AWeapon::Item_AddToInventory_Implementation()
+{
+	Super::Item_AddToInventory_Implementation();
 }

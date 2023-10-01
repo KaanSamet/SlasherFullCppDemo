@@ -18,6 +18,7 @@ class USpringArmComponent;
 class UGroomComponent;
 class AItem;
 class AWeapon;
+class IItemInteraction;
 
 
 
@@ -37,6 +38,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Animations")
 	void DetachWeaponFromHand_ForBlueprint();
+
+
+	void EquipWeaponOrAddToInventory(TObjectPtr<AItem> ThisOverlappedItem, IItemInteraction* ThisOverlappedItemInterface);
+
 
 protected: //BlueprintCalledFunction calls cpp based functions
 	void AttachWeaponToHand(TObjectPtr<AWeapon> Weapon);
@@ -61,6 +66,7 @@ protected:
 	TObjectPtr <UInputAction> SlashCharacterInputAction_Interact;
 	void Interact(const FInputActionValue& Value);
 
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr <UInputAction> SlashCharacterInputAction_Attack;
 	void Attack(const FInputActionValue& Value);
@@ -70,7 +76,6 @@ protected:
 
 	UFUNCTION()
 	void TrackCharacterGameplayState();
-
 
 
 private:
@@ -100,6 +105,9 @@ private:
 	UPROPERTY(BlueprintReadWrite, Category="CharacterState", meta=(AllowPrivateAccess = "true"))
 	ECharacterGameplayState CharacterGameplayState = ECharacterGameplayState::CGS_Idle;
 
+	UPROPERTY(BlueprintReadWrite, Category = "CharacterState", meta = (AllowPrivateAccess = "true"))
+	bool bCharacterInputAllowance = true;
+
 public:
 	//------------------------------- GETTERS -------------------------------
 	/**
@@ -114,14 +122,20 @@ public:
 	*/
 	UFUNCTION(BlueprintPure)
 	ECharacterGameplayState GetCharacterGameplayState() { return CharacterGameplayState; }
+	UFUNCTION(BlueprintPure)
+	bool GetCharacterInputAllowance() { return bCharacterInputAllowance; }
+
 	//------------------------------- SETTERS -------------------------------
 	/**
 	* Inline mutators
 	*/
 	FORCEINLINE void SetCharacterEquippedWeapon(AWeapon* CharacterEquippedWeapon) { EquippedWeapon = CharacterEquippedWeapon; }
+	FORCEINLINE void SetCharacterEquippedState(ECharacterEquippedState ECharacterEquippedState) { CharacterEquippedState = ECharacterEquippedState; }
 	/**
 	* UFUNC mutators
 	*/
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterGameplayState(ECharacterGameplayState CharacterGameplayState_Set) { CharacterGameplayState = CharacterGameplayState_Set; }
+	UFUNCTION(BlueprintCallable)
+	void SetCharacterInputAllowance(bool NewCharacterInputAllowance) { bCharacterInputAllowance = NewCharacterInputAllowance; }
 };

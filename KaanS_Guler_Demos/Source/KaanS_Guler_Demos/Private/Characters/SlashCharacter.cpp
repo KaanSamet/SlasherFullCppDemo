@@ -87,6 +87,18 @@ void ASlashCharacter::Tick(float DeltaTime)
 	TrackCharacterGameplayState();
 
 	/*
+	if (bCharacterInputAllowance)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("true"));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("false"));
+	}
+	*/
+	
+
+	/*
 	if (GEngine)
 	{
 		FString Message = FString::Printf(TEXT("CharacterGameplayState = %s"), *UEnum::GetValueAsString(GetCharacterGameplayState()));
@@ -166,33 +178,17 @@ void ASlashCharacter::TrackCharacterGameplayState()
 	bool bCharacterIsFalling = GetCharacterMovement()->IsFalling();
 	float CharacterVelocity = UKismetMathLibrary::VSizeXY(GetCharacterMovement()->Velocity);
 
-	switch (GetCharacterGameplayState())
+	if (bCharacterIsFalling)
 	{
-		case (ECharacterGameplayState::CGS_Idle):
-		case (ECharacterGameplayState::CGS_Jumping):
-		case (ECharacterGameplayState::CGS_Running):
-		{
-			if (bCharacterIsFalling)
-			{
-				SetCharacterGameplayState(ECharacterGameplayState::CGS_Jumping);
-				break;
-			}
-			else if (!bCharacterIsFalling && (CharacterVelocity != 0))
-			{
-				SetCharacterGameplayState(ECharacterGameplayState::CGS_Running);
-				break;
-			}
-			else if (!bCharacterIsFalling && (CharacterVelocity == 0))
-			{
-				SetCharacterGameplayState(ECharacterGameplayState::CGS_Idle);
-				break;
-			}
-		}
-		case (ECharacterGameplayState::CGS_StandingBasicAttack):
-		case (ECharacterGameplayState::CGS_RunningBasicAttack):
-		{
-			break;
-		}
+		SetCharacterGameplayState(ECharacterGameplayState::CGS_Jumping);
+	}
+	else if (!bCharacterIsFalling && (CharacterVelocity != 0))
+	{
+		SetCharacterGameplayState(ECharacterGameplayState::CGS_Running);
+	}
+	else if (!bCharacterIsFalling && (CharacterVelocity == 0))
+	{
+		SetCharacterGameplayState(ECharacterGameplayState::CGS_Idle);
 	}
 }		
 
@@ -200,7 +196,7 @@ void ASlashCharacter::TrackCharacterGameplayState()
 
 void ASlashCharacter::MoveWASD(const FInputActionValue& Value)
 {
-	if (GetController()) 
+	if (GetController() && bCharacterInputAllowance) 
 	{
 		switch (GetCharacterGameplayState())
 		{
@@ -235,11 +231,6 @@ void ASlashCharacter::MoveWASD(const FInputActionValue& Value)
 				}
 				break;
 			}
-			case (ECharacterGameplayState::CGS_StandingBasicAttack):
-			case (ECharacterGameplayState::CGS_RunningBasicAttack):
-			{
-				break;
-			}
 		}
 		
 	}
@@ -257,6 +248,8 @@ void ASlashCharacter::LookAround(const FInputActionValue& Value)
 
 void ASlashCharacter::Interact(const FInputActionValue& Value)
 {
+	if (!bCharacterInputAllowance) return;
+
 	const float Grab = (Value.Get<FVector>()).X;
 	const float Drop = (Value.Get<FVector>()).Y;
 	const float SwitchMode = (Value.Get<FVector>()).Z;
@@ -268,68 +261,16 @@ void ASlashCharacter::Interact(const FInputActionValue& Value)
 			return;
 		}
 
-		for (AItem* ThisItem : OverlappedItems)
+		for (TObjectPtr<AItem> ThisItem : OverlappedItems)
 		{
-			TObjectPtr<AOneHanded> OverlappingOneHanded = Cast<AOneHanded>(ThisItem);
-			TObjectPtr<ATwoHanded> OverlappingTwoHanded = Cast<ATwoHanded>(ThisItem);
+			IItemInteraction* ThisItemInterface = Cast<IItemInteraction>(ThisItem);
 
-			if (!OverlappingOneHanded && !OverlappingTwoHanded)
+			if (ThisItemInterface)
 			{
-				continue;
+				EquipWeaponOrAddToInventory(ThisItem, ThisItemInterface);
 			}
 
-			if (OverlappingOneHanded)
-			{
-				switch (CharacterEquippedState)
-				{
-				case ECharacterEquippedState::CES_UnEquipped:
-				{
-					if (!GetCharacterEquippedWeapon()) // Snap the weapon if I have no weapon
-					{
-						OverlappingOneHanded->EquipWeapon(GetMesh(), FName("RightHandOneHandedWeaponSocket"));
-						CharacterEquippedState = ECharacterEquippedState::CES_Equipped_OneHanded;
-						AttackAnimMontage = OverlappingOneHanded->GetAnimMontage();
-						SetCharacterEquippedWeapon(OverlappingOneHanded);
-					}
-					else // If I am holding a weapon add to inventory
-					{
-						break;
-					}
-				}
-				case ECharacterEquippedState::CES_Equipped_OneHanded:
-				case ECharacterEquippedState::CES_Equipped_TwoHanded:
-				{
-					break; //Add the weapon to inventory
-				}
-				}
-			}
-			else if (OverlappingTwoHanded)
-			{
-				switch (CharacterEquippedState)
-				{
-				case ECharacterEquippedState::CES_UnEquipped:
-				{
-					if (!GetCharacterEquippedWeapon()) // Snap the weapon if I have no weapon
-					{
-						OverlappingTwoHanded->EquipWeapon(GetMesh(), FName("RightHandOneHandedWeaponSocket"));
-						CharacterEquippedState = ECharacterEquippedState::CES_Equipped_OneHanded;
-						AttackAnimMontage = OverlappingTwoHanded->GetAnimMontage();
-						SetCharacterEquippedWeapon(OverlappingTwoHanded);
-					}
-					else // If I am holding a weapon add to inventory
-					{
-						break;
-					}
-				}
-				case ECharacterEquippedState::CES_Equipped_OneHanded:
-				case ECharacterEquippedState::CES_Equipped_TwoHanded:
-				{
-					break; //Add the weapon to inventory
-				}
-				}
-			}
 			
-			break;
 		}
 	}
 
@@ -369,8 +310,55 @@ void ASlashCharacter::Interact(const FInputActionValue& Value)
 	}
 }
 
+void ASlashCharacter::EquipWeaponOrAddToInventory(TObjectPtr<AItem> ThisOverlappedItem, IItemInteraction* ThisOverlappedItemInterface)
+{
+	ThisOverlappedItemInterface->Execute_Item_Equip(ThisOverlappedItem, GetMesh(), FName("RightHandOneHandedWeaponSocket"));
+
+	
+	/*
+	TObjectPtr<AWeapon> OverlappingWeapon = Cast<AWeapon>(ThisOverlappedItem);
+
+	if (!OverlappingWeapon) return;
+
+	switch (CharacterEquippedState)
+	{
+		case ECharacterEquippedState::CES_UnEquipped:
+		{
+			// Weapon Related Getters
+			AttackAnimMontage = OverlappingWeapon->GetAnimMontage();
+
+			//One Handed Related Getters
+			OverlappingWeapon = Cast<AOneHanded>(OverlappingWeapon);
+			if (OverlappingWeapon)
+			{
+				OverlappingWeapon->Execute_Item_Equip(GetMesh(), FName("RightHandOneHandedWeaponSocket")); //Give Socket Name For The One Handeds
+				CharacterEquippedState = ECharacterEquippedState::CES_Equipped_OneHanded;
+				SetCharacterEquippedWeapon(OverlappingWeapon);
+			}
+
+			// Two Handed Related Getters
+			OverlappingWeapon = Cast<ATwoHanded>(OverlappingWeapon);
+			if (OverlappingWeapon)
+			{
+				OverlappingWeapon->EquipWeapon(GetMesh(), FName("RightHandOneHandedWeaponSocket")); //Give Socket Name For The Two Handeds
+				CharacterEquippedState = ECharacterEquippedState::CES_Equipped_TwoHanded;
+				SetCharacterEquippedWeapon(OverlappingWeapon);
+			}
+
+		}
+		case ECharacterEquippedState::CES_Equipped_OneHanded:
+		case ECharacterEquippedState::CES_Equipped_TwoHanded:
+		{
+			break; //Add the weapon to inventory
+		}
+	}
+	*/
+}
+
 void ASlashCharacter::Attack(const FInputActionValue& Value)
 {
+	if (!bCharacterInputAllowance) return;
+
 	const bool AttackValue = Value.Get<bool>();
 	if (AttackValue)
 	{
@@ -381,8 +369,6 @@ void ASlashCharacter::Attack(const FInputActionValue& Value)
 				Play_StandingBasicAttackMontage();
 				break;
 			}
-			case(ECharacterGameplayState::CGS_RunningBasicAttack):
-			case(ECharacterGameplayState::CGS_StandingBasicAttack):
 			case(ECharacterGameplayState::CGS_Jumping):
 			case(ECharacterGameplayState::CGS_Running):
 			{
@@ -430,7 +416,6 @@ void ASlashCharacter::Play_StandingBasicAttackMontage()
 				break;
 			}
 			AnimInstance->Montage_JumpToSection(MontageSection, AttackAnimMontage);
-			SetCharacterGameplayState(ECharacterGameplayState::CGS_StandingBasicAttack);
 		}
 		case (ECharacterEquippedState::CES_Equipped_TwoHanded):
 		{

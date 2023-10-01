@@ -35,12 +35,6 @@ void AItem::Tick(float DeltaTime)
 
 void AItem::ItemBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	const FString Message = FString::Printf(TEXT("DisplayName BeginOverlap: %s"), *OtherActor->GetName());
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Cyan, Message);
-	}
-
 	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
 	if (SlashCharacter)
 	{
@@ -50,12 +44,6 @@ void AItem::ItemBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 
 void AItem::ItemEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	const FString Message = FString::Printf(TEXT("DisplayName EndOverlap: %s"), *OtherActor->GetName());
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Cyan, Message);
-	}
-
 	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
 	if (SlashCharacter)
 	{
@@ -63,3 +51,27 @@ void AItem::ItemEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	}
 }
 
+
+void AItem::Item_Equip(USceneComponent* ParentSceneComponent, FName SocketName)
+{
+	AttachToComponent(ParentSceneComponent, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+	GEngine->AddOnScreenDebugMessage(-1, 100.f, FColor::Red, TEXT("AITEM EQUIP"));
+	SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+
+//Interface Functions
+void AItem::Item_Interact_Implementation()
+{
+
+}
+
+void AItem::Item_Equip_Implementation(USceneComponent* ParentSceneComponent, FName SocketName)
+{
+
+}
+
+void AItem::Item_AddToInventory_Implementation()
+{
+
+}

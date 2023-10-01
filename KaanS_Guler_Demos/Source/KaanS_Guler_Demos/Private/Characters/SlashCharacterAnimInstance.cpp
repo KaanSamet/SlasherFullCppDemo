@@ -31,6 +31,4 @@ void USlashCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		CharacterEquippedState = SlashCharacter->GetCharacterEquippedState();
 		CharacterGameplayState = SlashCharacter->GetCharacterGameplayState();
 	}
-
-
 }

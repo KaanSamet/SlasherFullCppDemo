@@ -12,8 +12,6 @@ UENUM(BlueprintType)
 enum class ECharacterGameplayState : uint8
 {
 	CGS_Idle UMETA(DisplayName = "Idle"),
-	CGS_StandingBasicAttack UMETA(DisplayName = "StandingBasicAttack"),
-	CGS_RunningBasicAttack UMETA(DisplayName = "RunningBasicAttack"),
 	CGS_Running UMETA(DisplayName = "Running"),
 	CGS_Jumping UMETA(DisplayName = "Jumping")
 };
