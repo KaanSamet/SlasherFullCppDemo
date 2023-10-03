@@ -28,6 +28,8 @@ void UANS_CharacterInputDisable::NotifyTick(USkeletalMeshComponent* MeshComp,
 void UANS_CharacterInputDisable::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 	UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Notify End"));
+
 	if (SlashCharacter)
 	{
 		SlashCharacter->SetCharacterInputAllowance(true);

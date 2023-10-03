@@ -33,8 +33,16 @@ void ATwoHanded::Item_Equip_Implementation(USceneComponent* ParentSceneComponent
 	TObjectPtr<ASlashCharacter> SlashCharacter = Cast<ASlashCharacter>(ParentSceneComponent->GetOwner());
 	if (SlashCharacter)
 	{
+		if (!WeaponAttackAnimMontage) 
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 500.f, FColor::Red, TEXT("YOU FORGOT TO SET THIS WEAPON ATTACKANIMMONTAGE"));
+			return;
+		}
+
 		SlashCharacter->SetCharacterEquippedState(ECharacterEquippedState::CES_Equipped_TwoHanded);
 		SlashCharacter->SetCharacterEquippedWeapon(this);
+		SlashCharacter->SetCharacterAttackAnimMontage(WeaponAttackAnimMontage); 
+
 		Item_Equip(ParentSceneComponent, SocketName);
 	}
 }

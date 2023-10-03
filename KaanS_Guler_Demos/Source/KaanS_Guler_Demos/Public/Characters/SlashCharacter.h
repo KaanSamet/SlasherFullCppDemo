@@ -129,8 +129,9 @@ public:
 	/**
 	* Inline mutators
 	*/
-	FORCEINLINE void SetCharacterEquippedWeapon(AWeapon* CharacterEquippedWeapon) { EquippedWeapon = CharacterEquippedWeapon; }
+	FORCEINLINE void SetCharacterEquippedWeapon(AWeapon* ACharacterEquippedWeapon) { EquippedWeapon = ACharacterEquippedWeapon; }
 	FORCEINLINE void SetCharacterEquippedState(ECharacterEquippedState ECharacterEquippedState) { CharacterEquippedState = ECharacterEquippedState; }
+	FORCEINLINE void SetCharacterAttackAnimMontage(TObjectPtr<UAnimMontage> UAnimMontage) { AttackAnimMontage = UAnimMontage; }
 	/**
 	* UFUNC mutators
 	*/
